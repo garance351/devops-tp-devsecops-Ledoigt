@@ -7,10 +7,11 @@ jobs:
 # Permet de valider que le code compile et de préparer l'image pour le scan de vulnérabilités
 # ═══════════════════════════════════════
 build:
-name: 🏗 Build
+name: Build
 runs-on: ubuntu-latest
 steps:
 - uses: actions/checkout@v4
+🏗️
 - name: Build Docker image
 run: docker build -t vuln-app:${{ github.sha }} .
 - name: Save image
@@ -26,10 +27,11 @@ path: image.tar
 # Outil : Semgrep avec règles OWASP Top 10, security-audit, et détection de secrets
 # ═══════════════════════════════════════
 sast:
-name: 🔍 SAST
+name: SAST
 runs-on: ubuntu-latest
 steps:
 - uses: actions/checkout@v4
+🔍
 - name: Run Semgrep
 uses: returntocorp/semgrep-action@v1
 with:
@@ -43,10 +45,11 @@ p/owasp-top-ten
 # Outil : npm audit pour vérifier les CVE connues dans les dépendances Node.js
 # ═══════════════════════════════════════
 sca:
-name: 📦 SCA
+name: SCA
 runs-on: ubuntu-latest
 steps:
 - uses: actions/checkout@v4
+📦
 - name: Setup Node.js
 uses: actions/setup-node@v4
 with:
@@ -68,15 +71,18 @@ path: src/audit.json
 # Détecte les SECRETS accidentellement committés : clés API, mots de passe, tokens
 # Outil : Gitleaks qui scanne tout l'historique Git (fetch-depth: 0)
 #
-⚠ Critique : évite les fuites de credentials et violations de sécurité
+Critique : évite les fuites de credentials et violations de sécurité
 # ═══════════════════════════════════════
 secrets:
-name: 🔐 Secrets
+name:
+Secrets
 runs-on: ubuntu-latest
 steps:
 - uses: actions/checkout@v4
 with:
 fetch-depth: 0
+⚠️
+🔐
 - name: Gitleaks
 uses: gitleaks/gitleaks-action@v2
 env:
@@ -88,13 +94,14 @@ GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 # Recherche les vulnérabilités CRITICAL uniquement (pragmatisme DevSecOps)
 # ═══════════════════════════════════════
 container-scan:
-name: 🐳 Container Scan
+name: Container Scan
 runs-on: ubuntu-latest
 needs: build
 steps:
 - uses: actions/download-artifact@v4
 with:
 name: docker-image
+🐳
 - name: Load image
 run: docker load < image.tar
 - name: Trivy scan
@@ -111,7 +118,7 @@ severity: 'CRITICAL'
 # S'exécute toujours (if: always()) même si des jobs précédents ont échoué
 # ═══════════════════════════════════════
 report:
-name: 📊 Report
+name: Report
 runs-on: ubuntu-latest
 needs: [sast, sca, secrets, container-scan]
 if: always()
@@ -151,7 +158,10 @@ cat > security-report.json <<EOF
 }
 }
 EOF
-echo "📄 Security Report Generated:"
+📊
+📄
+echo "
+Security Report Generated:"
 cat security-report.json | jq '.'
 - name: Upload JSON Report
 uses: actions/upload-artifact@v4
@@ -160,7 +170,8 @@ name: security-report
 path: security-report.json
 - name: Summary
 run: |
-echo "## 🔒 Security Scan Complete" >> $GITHUB_STEP_SUMMARY
+echo "##
+Security Scan Complete" >> $GITHUB_STEP_SUMMARY
 echo "" >> $GITHUB_STEP_SUMMARY
 echo "### Job Results:" >> $GITHUB_STEP_SUMMARY
 echo "- SAST: ${{ needs.sast.result }}" >> $GITHUB_STEP_SUMMARY
@@ -168,16 +179,21 @@ echo "- SCA: ${{ needs.sca.result }}" >> $GITHUB_STEP_SUMMARY
 echo "- Secrets: ${{ needs.secrets.result }}" >> $GITHUB_STEP_SUMMARY
 echo "- Container Scan: ${{ needs.container-scan.result }}" >> $GITHUB_STEP_SUMMARY
 echo "" >> $GITHUB_STEP_SUMMARY
-echo "📥 **JSON Report available in artifacts**" >> $GITHUB_STEP_SUMMARY
+echo "
+**JSON Report available in artifacts**" >> $GITHUB_STEP_SUMMARY
 echo "" >> $GITHUB_STEP_SUMMARY
+🔒
+📥
 if [[ "${{ needs.sast.result }}" == "failure" ]] || \
 [[ "${{ needs.sca.result }}" == "failure" ]] || \
 [[ "${{ needs.secrets.result }}" == "failure" ]] || \
 [[ "${{ needs.container-scan.result }}" == "failure" ]]; then
-echo "❌ **Security issues detected!**" >> $GITHUB_STEP_SUMMARY
+echo "
+**Security issues detected!**" >> $GITHUB_STEP_SUMMARY
 echo "" >> $GITHUB_STEP_SUMMARY
-echo "⚠ Please review the failed jobs above" >> $GITHUB_STEP_SUMMARY
+echo "
+Please review the failed jobs above" >> $GITHUB_STEP_SUMMARY
 exit 1
 else
-echo "✅ All security checks passed" >> $GITHUB_STEP_SUMMARY
-fi
+echo "
+All security checks passed" >> $GITHUB_STEP_SUMMARY
