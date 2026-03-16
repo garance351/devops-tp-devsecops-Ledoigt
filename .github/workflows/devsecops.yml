@@ -1,0 +1,28 @@
+security-gate:
+  name: Security Gate
+  runs-on: ubuntu-latest
+
+  needs: [sast, sca, container-scan]
+
+  steps:
+    - name: Check results
+      run: |
+        echo "Checking security scan results..."
+
+        # Exemple logique simple
+        if [ "${{ needs.sast.result }}" != "success" ]; then
+          echo "Critical vulnerability found in SAST"
+          exit 1
+        fi
+
+        if [ "${{ needs.sca.result }}" != "success" ]; then
+          echo "Critical vulnerability found in SCA"
+          exit 1
+        fi
+
+        if [ "${{ needs.container-scan.result }}" != "success" ]; then
+          echo "Critical vulnerability found in container scan"
+          exit 1
+        fi
+
+        echo "No critical vulnerabilities detected"
