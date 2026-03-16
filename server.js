@@ -14,6 +14,22 @@ res.json({ token });
 res.status(401).json({ error: 'Invalid credentials' });
 }
 });
+// SQL Injection route
+app.get('/api/user', (req, res) => {
+  const username = req.query.username;
+
+  // ⚠️ SQL Injection volontaire
+  const query = "SELECT * FROM users WHERE username = '" + username + "'";
+
+  db.all(query, [], (err, rows) => {
+    if (err) {
+      res.status(500).json(err);
+      return;
+    }
+
+    res.json(rows);
+  });
+});
 app.get('/debug', (req, res) => {
 res.json({
 dbConnection: DB_CONNECTION,
