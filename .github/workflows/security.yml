@@ -145,7 +145,8 @@ severity: 'CRITICAL'
 report:
 name: Report
 runs-on: ubuntu-latest
-needs: [sast, sca, secrets, container-scan]
+needs: [security-gate]
+#needs: [sast, sca, secrets, container-scan]
 if: always()
 steps:
 - name: Generate JSON Report
