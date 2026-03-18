@@ -111,6 +111,31 @@ image-ref: vuln-app:${{ github.sha }}
 format: 'table'
 exit-code: '1'
 severity: 'CRITICAL'
+
+# ═══════════════════════════════════════
+# 6. SECURITY GATE
+# Bloque le merge si une vulnérabilité critique est détectée
+# ═══════════════════════════════════════
+  security-gate:
+    name: Security Gate
+    runs-on: ubuntu-latest
+    needs: [sast, sca, secrets, container-scan]
+
+    steps:
+      - name: Check job results
+        run: |
+          echo "Checking security results..."
+
+          if [[ "${{ needs.sast.result }}" == "failure" ]] || \
+             [[ "${{ needs.sca.result }}" == "failure" ]] || \
+             [[ "${{ needs.secrets.result }}" == "failure" ]] || \
+             [[ "${{ needs.container-scan.result }}" == "failure" ]]; then
+            echo "❌ Security Gate FAILED: vulnerabilities detected"
+            exit 1
+          else
+            echo "✅ Security Gate PASSED"
+          fi
+
 # ═══════════════════════════════════════
 # 6. RAPPORT FINAL
 # Génère un résumé de tous les scans de sécurité
